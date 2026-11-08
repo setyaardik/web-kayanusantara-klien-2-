@@ -31,6 +31,13 @@
         <input type="email" name="email" value="{{ old('email') }}" required placeholder="nama@email.com">
       </label>
       <label>
+        Daftar Sebagai
+        <select name="role" required>
+          <option value="siswa" {{ old('role') === 'siswa' ? 'selected' : '' }}>Murid</option>
+          <option value="guru" {{ old('role') === 'guru' ? 'selected' : '' }}>Guru</option>
+        </select>
+      </label>
+      <label>
         Kata Sandi
         <div class="pass-wrap">
           <input type="password" name="password" required placeholder="Minimal 8 karakter">

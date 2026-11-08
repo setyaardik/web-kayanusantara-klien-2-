@@ -377,6 +377,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  /* ---------- Jelajah 360: cari destinasi ---------- */
+  const destInput = document.getElementById('destinasi-q');
+  if (destInput) {
+    const destCards = document.querySelectorAll('.destinasi-card');
+    destInput.addEventListener('input', () => {
+      const q = destInput.value.trim().toLowerCase();
+      destCards.forEach((card) => {
+        card.hidden = q !== '' && !card.dataset.nama.includes(q);
+      });
+    });
+  }
+
+  /* ---------- Jelajah 360: agenda per bulan ---------- */
+  const agendaChips = document.querySelectorAll('.agenda-chip');
+  if (agendaChips.length) {
+    const agendaBadge = document.getElementById('agenda-badge');
+    const agendaEmpty = document.getElementById('agenda-empty');
+    const agendaItems = document.querySelectorAll('.agenda-item');
+    agendaChips.forEach((chip) => {
+      chip.addEventListener('click', () => {
+        agendaChips.forEach((c) => c.classList.remove('is-active'));
+        chip.classList.add('is-active');
+        const b = chip.dataset.bulan;
+        agendaBadge.textContent = b.toUpperCase();
+        let ada = false;
+        agendaItems.forEach((item) => {
+          const tampil = item.dataset.bulan === b;
+          item.hidden = !tampil;
+          item.classList.remove('anim');
+          void item.offsetWidth;
+          if (tampil) { ada = true; item.classList.add('anim'); }
+        });
+        agendaEmpty.hidden = ada;
+        agendaEmpty.classList.remove('anim');
+        void agendaEmpty.offsetWidth;
+        if (!ada) agendaEmpty.classList.add('anim');
+      });
+    });
+  }
+
   /* ---------- Selasar: pop-up Pelajari Selengkapnya per unsur ---------- */
   const modalEl = document.getElementById('unsur-modal');
   const detailEl = document.getElementById('unsur-detail');

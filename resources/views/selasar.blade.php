@@ -53,7 +53,7 @@
       @php
         $unsur = [
           ['slug'=>'bahasa','nama'=>'Bahasa','kat'=>'sosial','desk'=>'Alat komunikasi, identitas, dan pewarisan pengetahuan.'],
-          ['slug'=>'sistem-pengetahuan','nama'=>'Sistem Pengetahuan','kat'=>'pengetahuan','desk'=>'Pengetahuan masyarakat tentang alam dan kehidupan.'],
+          ['slug'=>'sistem-pengetahuan','nama'=>'Sistem Pengetahuan','kat'=>'pengetahuan','desk'=>'Memahami rumah adat, pengetahuan lokal, dan kearifan masyarakat.'],
           ['slug'=>'organisasi-sosial','nama'=>'Organisasi Sosial','kat'=>'sosial','desk'=>'Hubungan kekerabatan dan tata kehidupan masyarakat.'],
           ['slug'=>'peralatan-hidup-dan-teknologi','nama'=>'Peralatan Hidup dan Teknologi','kat'=>'karya','desk'=>'Alat, rumah, pakaian, dan teknologi tradisional.'],
           ['slug'=>'mata-pencaharian','nama'=>'Mata Pencaharian','kat'=>'sosial','desk'=>'Cara masyarakat memenuhi kebutuhan hidup.'],
