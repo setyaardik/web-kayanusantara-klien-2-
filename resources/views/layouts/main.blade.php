@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
     <link rel="preload" as="image" href="{{ asset('assets/img/hero/hero-wayang.webp') }}">
-<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}?v=57">
+<link rel="stylesheet" href="{{ asset('assets/css/style.css') }}?v=62">
   {{-- Font display swap + preconnect sudah di atas; JS defer di footer --}}
 </head>
 <body>

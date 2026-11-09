@@ -417,6 +417,166 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  /* ---------- Chatbot AI Kaya Nusantara ---------- */
+  const chatbotFab = document.getElementById('chatbotFab');
+  const chatbotPanel = document.getElementById('chatbotPanel');
+  const chatbotGreet = document.getElementById('chatbotGreet');
+  const chatbotBody = document.getElementById('chatbotBody');
+  const chatbotForm = document.getElementById('chatbotForm');
+  const chatbotInput = document.getElementById('chatbotInput');
+  if (chatbotFab && chatbotPanel) {
+    const togglePanel = (show) => {
+      chatbotPanel.hidden = !show;
+      chatbotGreet?.classList.add('hidden');
+      if (show) chatbotInput.focus();
+    };
+    chatbotFab.addEventListener('click', () => togglePanel(chatbotPanel.hidden));
+    document.getElementById('chatbotClose').addEventListener('click', () => togglePanel(false));
+    const bubble = (teks, kelas) => {
+      const b = document.createElement('div');
+      b.className = 'chatbot-bubble ' + kelas;
+      b.textContent = teks;
+      chatbotBody.appendChild(b);
+      chatbotBody.scrollTop = chatbotBody.scrollHeight;
+      return b;
+    };
+    chatbotForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const pesan = chatbotInput.value.trim();
+      if (!pesan) return;
+      bubble(pesan, 'me');
+      chatbotInput.value = '';
+      const token = chatbotForm.querySelector('input[name="_token"]').value;
+      const loading = bubble('Sedang mengetik...', 'bot');
+      const btn = chatbotForm.querySelector('button');
+      btn.disabled = true;
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': token },
+          body: JSON.stringify({ pesan }),
+        });
+        const data = await res.json();
+        loading.textContent = data.pesan || 'Maaf, aku belum bisa menjawab itu.';
+      } catch (err) {
+        loading.textContent = 'Koneksi terputus. Coba lagi nanti ya.';
+      }
+      btn.disabled = false;
+      chatbotInput.focus();
+    });
+  }
+
+  /* ---------- Guru: pop-up beri nilai ---------- */
+  const nilaiModal = document.getElementById('nilai-modal');
+  if (nilaiModal) {
+    const nilaiForm = document.getElementById('nilai-form');
+    const nilaiNama = document.getElementById('nilai-nama');
+    const closeNilai = () => { nilaiModal.hidden = true; document.body.classList.remove('modal-lock'); };
+    document.querySelectorAll('[data-nilai]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        nilaiForm.action = '/ruang-belajar/guru/penilaian/' + btn.dataset.nilai;
+        nilaiNama.textContent = btn.dataset.nama;
+        nilaiModal.hidden = false;
+        document.body.classList.add('modal-lock');
+        nilaiModal.querySelector('.lms-dialog-close').focus({ preventScroll: true });
+      });
+    });
+    nilaiModal.querySelector('.lms-dialog-close').addEventListener('click', closeNilai);
+    nilaiModal.addEventListener('click', (e) => { if (e.target === nilaiModal) closeNilai(); });
+  }
+
+  /* ---------- LMS: filter penilaian (kelas/unsur, visual) ---------- */
+  const filterKelas = document.getElementById('filterKelas');
+  const filterUnsur = document.getElementById('filterUnsur');
+  if (filterKelas && filterUnsur) {
+    const rows = document.querySelectorAll('.lms-list-row[data-kelas]');
+    const apply = () => {
+      rows.forEach((row) => {
+        const okKelas = !filterKelas.value || row.dataset.kelas === filterKelas.value;
+        const okUnsur = !filterUnsur.value || (row.dataset.unsur || '').includes(filterUnsur.value);
+        row.hidden = !(okKelas && okUnsur);
+      });
+    };
+    filterKelas.addEventListener('change', apply);
+    filterUnsur.addEventListener('change', apply);
+  }
+
+  /* ---------- LMS: notifikasi popup ---------- */
+  const notifBtn = document.getElementById('notifBtn');
+  const notifPop = document.getElementById('notifPop');
+  if (notifBtn && notifPop) {
+    notifBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = notifPop.classList.toggle('open');
+      notifBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    document.addEventListener('click', (e) => {
+      if (!notifPop.contains(e.target)) notifPop.classList.remove('open');
+    });
+    const okBtn = document.getElementById('notifOk');
+    if (okBtn) okBtn.addEventListener('click', () => notifPop.classList.remove('open'));
+  }
+
+  /* ---------- LMS: filter status materi Kelas Saya ---------- */
+  document.querySelectorAll('.lms-chip[data-status]').forEach((chip) => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.lms-chip[data-status]').forEach((c) => c.classList.remove('is-active'));
+      chip.classList.add('is-active');
+      const s = chip.dataset.status;
+      let tampil = 0;
+      document.querySelectorAll('.lms-materi').forEach((card) => {
+        const showCard = s === 'semua' || card.dataset.status === s;
+        card.hidden = !showCard;
+        if (showCard) tampil++;
+      });
+      const empty = document.getElementById('kelasEmpty');
+      if (empty) empty.hidden = tampil > 0;
+    });
+  });
+
+  /* ---------- LMS: pop-up materi + Mengerti ---------- */
+  const materiModal = document.getElementById('materi-modal');
+  const materiDataEl = document.getElementById('materi-data');
+  if (materiModal && materiDataEl) {
+    const data = JSON.parse(materiDataEl.textContent);
+    const closeMateri = () => { materiModal.hidden = true; document.body.classList.remove('modal-lock'); };
+    document.querySelectorAll('.lms-buka[data-materi]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const slug = btn.dataset.materi;
+        const d = data[slug];
+        if (!d) return;
+        document.getElementById('materi-img').src = '/assets/img/materi/' + slug + '.webp';
+        document.getElementById('materi-img').alt = d.nama;
+        document.getElementById('materi-judul').textContent = d.nama;
+        document.getElementById('materi-desk').textContent = d.desk;
+        document.getElementById('materi-form').action = '/ruang-belajar/materi/' + slug + '/selesai';
+        materiModal.hidden = false;
+        document.body.classList.add('modal-lock');
+        document.getElementById('materi-close').focus({ preventScroll: true });
+      });
+    });
+    document.getElementById('materi-close').addEventListener('click', closeMateri);
+    materiModal.addEventListener('click', (e) => { if (e.target === materiModal) closeMateri(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMateri(); });
+  }
+
+  /* ---------- LMS: pop-up tambah (kelas/materi/tugas/kuis) ---------- */
+  const pasangan = [['addKelasBtn', 'kelas-modal'], ['addMateriBtn', 'materi-modal'], ['addTugasBtn', 'tugas-modal'], ['addKuisBtn', 'kuis-modal']];
+  pasangan.forEach(([btnId, modalId]) => {
+    const btn = document.getElementById(btnId);
+    const modal = document.getElementById(modalId);
+    if (!btn || !modal) return;
+    btn.addEventListener('click', () => {
+      modal.hidden = false;
+      document.body.classList.add('modal-lock');
+      modal.querySelector('.unsur-close').focus({ preventScroll: true });
+    });
+    const close = () => { modal.hidden = true; document.body.classList.remove('modal-lock'); };
+    modal.querySelector('.lms-dialog-close, .unsur-close').addEventListener('click', close);
+    modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+    modal.querySelector('[data-close]')?.addEventListener('click', close);
+  });
+
   /* ---------- Selasar: pop-up Pelajari Selengkapnya per unsur ---------- */
   const modalEl = document.getElementById('unsur-modal');
   const detailEl = document.getElementById('unsur-detail');

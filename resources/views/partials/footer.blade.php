@@ -31,7 +31,7 @@
         <ul>
           <li><a href="{{ route('home') }}">Home</a></li>
           <li><a href="{{ route('selasar') }}">Selasar Budaya</a></li>
-          <li><a href="{{ route('galeri') }}">Galeri Karya</a></li>
+          <li><a href="{{ route('home') }}#galeri">Galeri Karya</a></li>
           <li><a href="{{ route('jelajah360') }}">Jelajah Budaya 360&deg;</a></li>
           <li><a href="{{ route('belajar') }}">Ruang Belajar</a></li>
         </ul>
@@ -54,12 +54,41 @@
   </div>
 </footer>
 
+@auth
+{{-- Widget chatbot AI (contoh: chatbot 1 & 2) --}}
+<div class="chatbot" id="chatbot">
+  <div class="chatbot-greet" id="chatbotGreet">
+    <p>Hallo, ada yang bisa Kaira bantu?</p>
+  </div>
+  <div class="chatbot-panel" id="chatbotPanel" hidden>
+    <div class="chatbot-head">
+      <span class="chatbot-ava"><img src="{{ asset('assets/img/logo-putih.png') }}?v=2" alt="Kaira"></span>
+      <b>Kaira</b>
+      <button type="button" class="chatbot-close" id="chatbotClose" aria-label="Tutup chat">&times;</button>
+    </div>
+    <div class="chatbot-body" id="chatbotBody">
+      <div class="chatbot-bubble bot">Hallo, aku Kaira — asisten belajarmu! Tanya saja tentang kebudayaan Indonesia, materi di Kelas Saya jadi rujukan utamaku.</div>
+    </div>
+    <form class="chatbot-form" id="chatbotForm">
+      @csrf
+      <input type="text" id="chatbotInput" placeholder="Silakan ketik..." maxlength="1000" autocomplete="off">
+      <button type="submit" aria-label="Kirim">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21.5 12 3.4 3.6l-.01 6.53L14 12 3.39 13.87z"/></svg>
+      </button>
+    </form>
+  </div>
+  <button type="button" class="chatbot-fab" id="chatbotFab" aria-label="Buka chat AI">
+    <img src="{{ asset('assets/img/logo-putih.png') }}?v=2" alt="Chat AI Kaya Nusantara">
+  </button>
+</div>
+@endauth
+
 <div class="toast" id="toast" role="status"></div>
 
 <button class="to-top" id="toTop" aria-label="Kembali ke atas">
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
 </button>
 
-<script src="{{ asset('assets/js/main.js') }}?v=22" defer></script>
+<script src="{{ asset('assets/js/main.js') }}?v=25" defer></script>
 </body>
 </html>

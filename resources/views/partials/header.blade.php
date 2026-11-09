@@ -24,7 +24,7 @@
           </ul>
         </li>
         <li><a class="{{ $current === 'selasar' ? 'active' : '' }}" href="{{ route('selasar') }}">Selasar Budaya</a></li>
-        <li><a class="{{ $current === 'galeri' ? 'active' : '' }}" href="{{ route('galeri') }}">Galeri Karya</a></li>
+        <li><a href="{{ route('home') }}#galeri">Galeri Karya</a></li>
         <li><a class="{{ $current === 'jelajah360' ? 'active' : '' }}" href="{{ route('jelajah360') }}">Jelajah Budaya 360&deg;</a></li>
         <li><a class="{{ $current === 'belajar' ? 'active' : '' }}" href="{{ route('belajar') }}">Ruang Belajar</a></li>
       </ul>
