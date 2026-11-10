@@ -1,4 +1,4 @@
-{{-- Footer bersama --}}
+﻿{{-- Footer bersama --}}
 <footer class="site-footer" id="belajar">
   <div class="container">
     <div class="footer-grid">
@@ -40,7 +40,7 @@
       <div class="footer-col">
         <h4>Hubungi Kami</h4>
         <ul class="footer-contact">
-          <li>Tim Kaya Nusantara</li>
+          <li><a href="{{ route('tim') }}">Tim Kaya Nusantara</a></li>
           <li><a href="mailto:kenalibudayanusantara@gmail.com">kenalibudayanusantara@gmail.com</a></li>
           <li><a href="tel:+62895413561810">0895413561810</a></li>
           <li>Jl. Perumahan Ayodya, Sekaran,<br>Kec. Gunungpati, Kota Semarang,<br>Jawa Tengah 50229</li>
@@ -54,12 +54,8 @@
   </div>
 </footer>
 
-@auth
-{{-- Widget chatbot AI (contoh: chatbot 1 & 2) --}}
+{{-- Widget chatbot AI --}}
 <div class="chatbot" id="chatbot">
-  <div class="chatbot-greet" id="chatbotGreet">
-    <p>Hallo, ada yang bisa Kaira bantu?</p>
-  </div>
   <div class="chatbot-panel" id="chatbotPanel" hidden>
     <div class="chatbot-head">
       <span class="chatbot-ava"><img src="{{ asset('assets/img/logo-putih.png') }}?v=2" alt="Kaira"></span>
@@ -67,21 +63,34 @@
       <button type="button" class="chatbot-close" id="chatbotClose" aria-label="Tutup chat">&times;</button>
     </div>
     <div class="chatbot-body" id="chatbotBody">
-      <div class="chatbot-bubble bot">Hallo, aku Kaira — asisten belajarmu! Tanya saja tentang kebudayaan Indonesia, materi di Kelas Saya jadi rujukan utamaku.</div>
+      @auth
+        <div class="chatbot-bubble bot">Hallo, aku Kaira asisten belajarmu! Tanya saja tentang kebudayaan Indonesia, materi di Kelas Saya jadi rujukan utamaku.</div>
+      @else
+        <div class="chatbot-bubble bot">Hallo, aku Kaira! Untuk mulai mengobrol dan bertanya seputar kebudayaan Indonesia, silakan masuk terlebih dahulu.</div>
+        <div class="chatbot-login-cta">
+          <a class="btn btn-coklat" href="{{ route('login', ['redirect' => url()->current()]) }}">Masuk untuk Chat</a>
+        </div>
+      @endauth
     </div>
-    <form class="chatbot-form" id="chatbotForm">
-      @csrf
-      <input type="text" id="chatbotInput" placeholder="Silakan ketik..." maxlength="1000" autocomplete="off">
-      <button type="submit" aria-label="Kirim">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21.5 12 3.4 3.6l-.01 6.53L14 12 3.39 13.87z"/></svg>
-      </button>
-    </form>
+    @auth
+      <form class="chatbot-form" id="chatbotForm">
+        @csrf
+        <input type="text" id="chatbotInput" placeholder="Silakan ketik..." maxlength="1000" autocomplete="off">
+        <button type="submit" aria-label="Kirim">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3.4 20.4 21.5 12 3.4 3.6l-.01 6.53L14 12 3.39 13.87z"/></svg>
+        </button>
+      </form>
+    @else
+      <div class="chatbot-form chatbot-form-guest">
+        <p>Login diperlukan untuk menggunakan chat AI.</p>
+      </div>
+    @endauth
   </div>
-  <button type="button" class="chatbot-fab" id="chatbotFab" aria-label="Buka chat AI">
-    <img src="{{ asset('assets/img/logo-putih.png') }}?v=2" alt="Chat AI Kaya Nusantara">
+  <button type="button" class="chatbot-fab" id="chatbotFab" aria-label="Buka chat Kaira">
+    <span class="chatbot-fab-text">Hallo, ada yang bisa Kaira bantu?</span>
+    <span class="chatbot-fab-icon"><img src="{{ asset('assets/img/logo-putih.png') }}?v=2" alt=""></span>
   </button>
 </div>
-@endauth
 
 <div class="toast" id="toast" role="status"></div>
 
@@ -89,6 +98,8 @@
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
 </button>
 
-<script src="{{ asset('assets/js/main.js') }}?v=25" defer></script>
+<script src="{{ asset('assets/js/main.js') }}?v=29" defer></script>
 </body>
 </html>
+
+

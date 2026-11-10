@@ -24,9 +24,17 @@
 <div class="lms-list">
   @forelse ($tugas as $t)
     <div class="lms-list-row">
-      <div><b>{{ $t->judul }}</b><br><small>Tugas &middot; {{ $t->deadline ? 'Tenggat ' . $t->deadline->translatedFormat('j F Y') : 'Tanpa tenggat' }}</small></div>
+      <div>
+        <b>{{ $t->judul }}</b><br>
+        <small>Tugas &middot; {{ $t->deadline ? 'Tenggat ' . $t->deadline->translatedFormat('j F Y') : 'Tanpa tenggat' }}{{ $t->kelas ? ' &middot; ' . $t->kelas->tingkat . ' - ' . $t->kelas->nama : '' }}</small>
+      </div>
       <span class="lms-badge {{ $t->deadline && $t->deadline < now() ? 'ok' : 'no' }}">{{ $t->deadline && $t->deadline < now() ? 'Selesai' : 'Sedang Berlangsung' }}</span>
-      <a class="dash-btn" href="{{ route('guru.tugas') }}">Edit</a>
+      <button class="dash-btn" type="button"
+        data-edit-tugas="{{ $t->id }}"
+        data-judul="{{ e($t->judul) }}"
+        data-deskripsi="{{ e($t->deskripsi ?? '') }}"
+        data-kelas="{{ $t->kelas_id }}"
+        data-deadline="{{ $t->deadline ? $t->deadline->format('Y-m-d\TH:i') : '' }}">Edit</button>
     </div>
   @empty
     <p class="dash-empty">Belum ada tugas.</p>
@@ -36,23 +44,27 @@
 <div class="unsur-modal" id="tugas-modal" hidden>
   <div class="lms-dialog">
     <button class="lms-dialog-close" type="button" data-close aria-label="Tutup">&times;</button>
-    <h3 class="lms-modal-title">Buat Tugas</h3>
-    <form method="POST" action="{{ route('guru.tugas.store') }}">
+    <h3 class="lms-modal-title" id="tugas-modal-title">Buat Tugas</h3>
+    <form method="POST" action="{{ route('guru.tugas.store') }}" id="tugas-form" data-store="{{ route('guru.tugas.store') }}">
       @csrf
+      <input type="hidden" name="_method" id="tugas-method" value="POST" disabled>
       <label>Judul Tugas
-        <input type="text" name="judul" placeholder="Contoh : Analisis Filosofi Rumah Adat" required>
+        <input type="text" name="judul" id="tugas-judul" placeholder="Tulis judul tugas" required>
+      </label>
+      <label>Deskripsi Tugas
+        <input type="text" name="deskripsi" id="tugas-deskripsi" placeholder="Tulis deskripsi tugas untuk peserta didik">
       </label>
       <label>Kelas
-        <select name="kelas_id" required>
+        <select name="kelas_id" id="tugas-kelas" required>
           @foreach ($kelas as $k)
             <option value="{{ $k->id }}">{{ $k->tingkat }} - {{ $k->nama }}</option>
           @endforeach
         </select>
       </label>
-      <label>Tenggat
-        <input type="datetime-local" name="deadline">
+      <label>Pilih Tanggal Tenggat Waktu Pengumpulan
+        <input type="datetime-local" name="deadline" id="tugas-deadline">
       </label>
-      <button class="btn btn-coklat lms-edit-btn" type="submit">Simpan Tugas</button>
+      <button class="btn btn-coklat lms-edit-btn" type="submit" id="tugas-submit">Upload</button>
     </form>
   </div>
 </div>

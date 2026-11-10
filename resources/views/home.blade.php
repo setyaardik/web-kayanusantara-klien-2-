@@ -64,15 +64,12 @@
           <div class="kicker">Telah diselenggarakan di SMA Karangturi</div>
           <p>Hasil karya berupa Photo Story Book dan telah mendapatkan Hak Cipta Kekayaan Intelektual (KI), dapat diakses melalui tautan berikut:</p>
 
-          <a class="link-row" href="https://drive.google.com/file/d/1-dM1jhadnNx_s4ybu1vU--1xaCFcX0DI/view?usp=drivesdk" target="_blank" rel="noopener">
-            <span class="t">Photo Story Book<br><span class="sub">&ldquo;Mozaik Harmoni Keberagaman Kota Atlas&rdquo;</span></span>
-            <span class="go">Lihat</span>
-          </a>
-
-          <a class="link-row" href="https://hakcipta.dgip.go.id/legal/c/NDM2MTY0NzEwNDllZGI2ZWQ4ZjZjMDcyNjVkYjdiOTI=" target="_blank" rel="noopener">
-            <span class="t">Hak Cipta Kekayaan Intelektual<br><span class="sub">Photo Story Book</span></span>
-            <span class="go">Lihat</span>
-          </a>
+          @foreach ($langkahGaleri as $item)
+            <a class="link-row" href="{{ $item->url }}" target="_blank" rel="noopener">
+              <span class="t">{{ $item->judul }}@if($item->subjudul)<br><span class="sub">{!! $item->subjudul !!}</span>@endif</span>
+              <span class="go">{{ $item->label_tombol ?: 'Lihat' }}</span>
+            </a>
+          @endforeach
         </article>
 
         {{-- Kolom 1 bawah: Publikasi Ilmiah --}}
@@ -84,20 +81,10 @@
           <div class="kicker">Diseminasi Karya Publikasi Ilmiah Budaya di Indonesia</div>
           <p>Hasil karya berupa Publikasi Ilmiah dari penulis, dapat diakses pada tautan berikut:</p>
 
-          @php
-            $publikasi = [
-              ['Cultural Conservation of Wong Kejawen Religion (Folklore Study of the Kejawen Community in Sidorejo Village, Batang Regency)', 'https://garuda.kemdiktisaintek.go.id/documents/detail/3759074'],
-              ['Religious Learning on Students Believe in Sapta Dharma at School', 'https://www.atlantis-press.com/proceedings/icospolhum-21/125971440'],
-              ['Local Education Practices of Sedulur Sikep Community: Resisting Formal Education and Developing the Value of Local Education', 'https://www.atlantis-press.com/proceedings/icess-21/125961151'],
-              ['From Handshaking To Smiling: The Impact Of Global Policies On Local Communities In The Pandemic Era', 'https://jurnal.unpad.ac.id/umbara/article/view/30656'],
-              ['Pandu Budaya School: Regeneration Agent and Strategy to Preserve Culture in Jalawastu Traditional Village', 'https://kneopen.com/kne-social/article/view/18655/'],
-              ['Praktik Pilot Project Reformulasi Produksi Penyelematan Warisan Budaya Tak Benda Wedang Rojo berbasis Kemitraan Green Culture Berkelanjutan pada Desa Pariwisata Nongkosawit', 'https://garuda.kemdiktisaintek.go.id/documents/detail/6538513'],
-            ];
-          @endphp
-          @foreach ($publikasi as [$judul, $url])
-            <a class="link-row" href="{{ $url }}" target="_blank" rel="noopener">
-              <span class="t">{{ $judul }}</span>
-              <span class="go">Lihat</span>
+          @foreach ($langkahPublikasi as $item)
+            <a class="link-row" href="{{ $item->url }}" target="_blank" rel="noopener">
+              <span class="t">{{ $item->judul }}</span>
+              <span class="go">{{ $item->label_tombol ?: 'Lihat' }}</span>
             </a>
           @endforeach
         </article>
@@ -112,11 +99,9 @@
         <div class="kicker">Dokumentasi Galeri Karya Budaya</div>
 
         <div class="dok-grid">
-          <img class="dok-img dok-cover" src="{{ asset('assets/img/dokumentasi/cover.webp') }}" alt="Cover Photo Story Book Mozaik Harmoni Keberagaman Kota Atlas" loading="lazy">
-          <img class="dok-img dok-pengantar" src="{{ asset('assets/img/dokumentasi/pengantar.webp') }}" alt="Pengantar Photo Story" loading="lazy">
-          <img class="dok-img dok-hak" src="{{ asset('assets/img/dokumentasi/hakcipta.webp') }}" alt="Surat Pencatatan Ciptaan Hak Cipta KI" loading="lazy">
-          <img class="dok-img dok-keg1" src="{{ asset('assets/img/dokumentasi/kegiatan1.webp') }}" alt="Dokumentasi kegiatan PjBL bersama siswa" loading="lazy">
-          <img class="dok-img dok-keg2" src="{{ asset('assets/img/dokumentasi/kegiatan2.webp') }}" alt="Dokumentasi kegiatan di SMA Karangturi" loading="lazy">
+          @foreach ($langkahDokumentasi as $dok)
+            <img class="dok-img {{ $dok->kelas }}" src="{{ asset($dok->gambar) }}" alt="{{ $dok->alt }}" loading="lazy">
+          @endforeach
         </div>
 
         <p class="dok-caption">Karya ini menjadi langkah strategis dalam mewujudkan generasi muda yang peduli akan budaya, kreatif untuk berkarya, dan inovatif dalam berinovasi.</p>
@@ -225,26 +210,13 @@
     </div>
 
     <div class="faq-list reveal stagger">
-      @php
-        $faqs = [
-          ['Apa itu Kaya Nusantara?', 'Kaya Nusantara (Kenali Budaya Nusantara) merupakan platform edukasi dan media pembelajaran digital yang bertujuan memperkenalkan, mempelajari, dan melestarikan keberagaman budaya Indonesia. Platform ini mengintegrasikan tujuh unsur kebudayaan ke dalam materi edukasi dan pembelajaran interaktif bagi siswa SD, SMP, dan SMA/sederajat.'],
-          ['Apa saja materi kebudayaan yang tersedia di Kaya Nusantara?', 'Kaya Nusantara menyediakan materi berdasarkan tujuh unsur kebudayaan, yaitu bahasa, sistem pengetahuan, organisasi sosial, sistem peralatan hidup dan teknologi, sistem mata pencaharian hidup, sistem religi, serta kesenian. Materi dilengkapi informasi, gambar, artikel, video, dan aktivitas pembelajaran.'],
-          ['Siapa saja yang dapat menggunakan website Kaya Nusantara?', 'Kaya Nusantara dapat digunakan oleh masyarakat umum, siswa SD, SMP, SMA/sederajat, serta guru. Pengunjung umum dapat mengakses informasi kebudayaan, sedangkan siswa dan guru dapat memanfaatkan fasilitas pembelajaran melalui akun masing-masing.'],
-          ['Bagaimana cara siswa mengikuti pembelajaran di Kaya Nusantara?', 'Siswa dapat mendaftar atau masuk menggunakan akun yang telah dimiliki, kemudian bergabung ke kelas melalui kode kelas yang diberikan guru. Setelah bergabung, siswa dapat mengakses materi, mengerjakan tugas, mengikuti asesmen, berdiskusi, dan memantau perkembangan belajarnya.'],
-          ['Apakah siswa dapat mengunggah hasil karya melalui Kaya Nusantara?', 'Ya. Siswa dapat mengunggah hasil pembelajaran berupa ringkasan materi, artikel, makalah, poster, infografis, foto, maupun video yang berkaitan dengan kebudayaan Indonesia. Karya tersebut dapat diperiksa dan dinilai guru sebelum dipublikasikan di Galeri Kaya Nusantara.'],
-          ['Apa saja yang dapat dilakukan guru melalui Kaya Nusantara?', 'Guru dapat membuat dan mengelola kelas digital, menyediakan materi pembelajaran, memberikan tugas dan proyek, menyusun asesmen, menilai hasil pekerjaan siswa, serta memantau perkembangan belajar melalui laporan pembelajaran yang tersedia.'],
-          ['Apakah Kaya Nusantara menyediakan kuis atau evaluasi pembelajaran?', 'Ya. Kaya Nusantara menyediakan fitur kuis dan asesmen interaktif untuk mengukur pemahaman siswa terhadap materi kebudayaan. Bentuk evaluasi dapat berupa pilihan ganda, benar-salah, menjodohkan, isian singkat, maupun soal uraian yang disusun sesuai jenjang pendidikan.'],
-          ['Bagaimana Kaya Nusantara membantu melestarikan kebudayaan Indonesia?', 'Kaya Nusantara berperan sebagai media edukasi dan dokumentasi digital yang memperkenalkan keberagaman budaya Indonesia kepada generasi muda. Melalui pembelajaran interaktif, eksplorasi budaya daerah, serta publikasi karya siswa, platform ini mendorong keterlibatan generasi muda dalam mengenal, menghargai, dan melestarikan warisan budaya bangsa.'],
-        ];
-      @endphp
-
       @foreach ($faqs as $i => $faq)
         <div class="faq-item">
           <span class="faq-num">{{ $i + 1 }}</span>
-          <span class="faq-q">{{ $faq[0] }}</span>
+          <span class="faq-q">{{ $faq->pertanyaan }}</span>
           <span class="faq-plus">+</span>
         </div>
-        <div class="faq-a"><p>{{ $faq[1] }}</p></div>
+        <div class="faq-a"><p>{{ $faq->jawaban }}</p></div>
       @endforeach
     </div>
   </div>
@@ -266,16 +238,13 @@
 
       <div class="testi-viewport" id="testiViewport">
         <div class="testi-track" id="testiTrack">
-          @foreach ([
-            ['inisial' => 'T1', 'nama' => 'Nama Testimoni 1', 'jabatan' => 'Jabatan / Institusi — menyusul', 'teks' => 'Kaya Nusantara menjadi langkah nyata memperkenalkan kebudayaan kepada generasi muda melalui media yang menyenangkan dan mudah diakses. Saya mendukung penuh pengembangan platform ini.'],
-            ['inisial' => 'T2', 'nama' => 'Nama Testimoni 2', 'jabatan' => 'Jabatan / Institusi — menyusul', 'teks' => 'Platform yang sangat relevan dengan kebutuhan pembelajaran budaya di sekolah. Fitur kelas dan pengumpulan karya siswanya memudahkan guru dalam mengelola pembelajaran.'],
-          ] as $t)
+          @foreach ($testimonis as $t)
             <article class="testi-slide">
-              <div class="ava">{{ $t['inisial'] }}</div>
+              <div class="ava">{{ $t->inisial ?: mb_substr($t->nama, 0, 1) }}</div>
               <div class="quote">&ldquo;</div>
-              <p>{{ $t['teks'] }}</p>
-              <b>{{ $t['nama'] }}</b>
-              <span>{{ $t['jabatan'] }}</span>
+              <p>{{ $t->teks }}</p>
+              <b>{{ $t->nama }}</b>
+              <span>{{ $t->jabatan }}</span>
             </article>
           @endforeach
         </div>
@@ -302,15 +271,10 @@
     </div>
 
     <div class="mitra-grid reveal stagger">
-      @foreach ([
-        ['unnes.webp', 'Universitas Negeri Semarang'],
-        ['undip.webp', 'Universitas Diponegoro'],
-        ['sma-karangturi.webp', 'SMA Karangturi'],
-        ['kemenkebud.webp', 'Kementerian Kebudayaan'],
-      ] as $mitra)
+      @foreach ($mitras as $mitra)
         <div class="mitra-card">
-          <div class="mitra-logo"><img src="{{ asset('assets/img/mitra/'.$mitra[0]) }}" alt="{{ $mitra[1] }}" loading="lazy"></div>
-          <b>{{ $mitra[1] }}</b>
+          <div class="mitra-logo"><img src="{{ asset($mitra->logo) }}" alt="{{ $mitra->nama }}" loading="lazy"></div>
+          <b>{{ $mitra->nama }}</b>
         </div>
       @endforeach
     </div>

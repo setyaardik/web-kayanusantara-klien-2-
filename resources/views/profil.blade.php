@@ -11,7 +11,7 @@
   <span class="lms-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
   <div>
     <h3>{{ $user->name }}</h3>
-    <p>{{ $user->role === 'guru' ? 'Guru' : 'Peserta Didik' }}{{ $user->kelas ? ' &middot; Kelas ' . $user->kelas : '' }}</p>
+    <p>{{ $user->role === 'guru' ? 'Guru' : 'Peserta Didik' }}@if($user->kelas) &middot; Kelas {{ $user->kelas }}@endif</p>
     <p>{{ $user->sekolah ?? 'SMA Karangturi' }}</p>
   </div>
 </div>

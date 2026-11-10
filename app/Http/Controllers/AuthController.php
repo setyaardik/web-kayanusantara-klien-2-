@@ -23,9 +23,21 @@ class AuthController extends Controller
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
+            'login_as' => ['required', 'in:siswa,guru'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+        if (Auth::attempt(['email' => $credentials['email'], 'password' => $credentials['password']], $request->boolean('remember'))) {
+            $user = Auth::user();
+
+            if ($user->role !== $credentials['login_as']) {
+                $peran = $user->role === 'guru' ? 'Guru' : ($user->role === 'siswa' ? 'Murid' : 'UMKM');
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return back()->withErrors(['email' => "Akun ini terdaftar sebagai {$peran}. Silakan pilih peran yang sesuai."])->withInput();
+            }
+
             $request->session()->regenerate();
 
             $next = $request->input('redirect');
@@ -54,7 +66,7 @@ class AuthController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', 'in:siswa,guru'],
+            'role' => ['required', 'in:siswa,guru,umkm'],
         ]);
 
         $user = User::create([

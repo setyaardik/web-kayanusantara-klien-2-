@@ -29,7 +29,7 @@
         <b>{{ $p->user?->name ?? '-' }}</b><br>
         <small>{{ $p->tugas->kelas?->tingkat ?? '' }} {{ $p->tugas->kelas?->nama ?? '' }} &middot; {{ $p->tugas?->judul ?? '-' }}</small>
         @if ($p->file_path)
-          <br><a href="{{ Storage::disk('public')->url($p->file_path) }}" target="_blank" rel="noopener">Lihat berkas &rarr;</a>
+          <br><a href="{{ route('tugas.unduh', $p) }}">Lihat berkas &rarr;</a>
         @endif
       </div>
       <span class="lms-badge {{ $p->nilai === null ? 'no' : 'ok' }}">{{ $p->nilai === null ? 'Belum dinilai' : 'Nilai ' . $p->nilai }}</span>

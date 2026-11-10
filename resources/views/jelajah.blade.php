@@ -64,28 +64,22 @@
     </div>
 
     <div class="destinasi-grid reveal stagger">
-      @php
-        $destinasi = [
-          ['slug'=>'paresean','nama'=>'Paresean','daerah'=>'Lombok','desk'=>'Peresean adalah tradisi pertarungan seni tari dan adu ketangkasan tradisional khas suku Sasak dari Lombok, Nusa Tenggara Barat.'],
-          ['slug'=>'ladosan-dhahar','nama'=>'Ladosan Dhahar','daerah'=>'Yogyakarta','desk'=>'Ladosan Dhahar adalah tradisi jamuan makan ala bangsawan dari Keraton Ngayogyakarta Hadiningrat.'],
-          ['slug'=>'lembah-baliem','nama'=>'Lembah Baliem','daerah'=>'Wamena','desk'=>'Festival Budaya Lembah Baliem (FBLB) adalah perayaan budaya tahunan tertua di Papua.'],
-          ['slug'=>'wayang-orang','nama'=>'Wayang Orang','daerah'=>'Solo','desk'=>'Wayang Orang Sriwedari adalah salah satu kelompok dan panggung seni pertunjukan teater tradisional Jawa (wayang orang) tertua dan paling legendaris yang berasal dari Kota Surakarta (Solo), Jawa Tengah.'],
-          ['slug'=>'pacu-jalur','nama'=>'Pacu Jalur','daerah'=>'Riau','desk'=>'Pacu Jalur adalah tradisi perlombaan dayung perahu panjang tradisional yang berasal dari Kabupaten Kuantan Singingi (Kuansing), Provinsi Riau.'],
-          ['slug'=>'tari-kecak','nama'=>'Tari Kecak Uluwatu','daerah'=>'Bali','desk'=>'Tari Kecak Uluwatu adalah salah satu atraksi budaya paling ikonik di Bali yang memadukan tarian tradisional, epos Ramayana, dan pemandangan matahari terbenam (sunset) di atas Samudra Hindia.'],
-        ];
-      @endphp
-      @foreach ($destinasi as $d)
-      <article class="destinasi-card" data-nama="{{ strtolower($d['nama'].' '.$d['daerah']) }}">
+      @foreach ($destinasis as $d)
+      <article class="destinasi-card" data-nama="{{ strtolower($d->nama.' '.$d->daerah) }}">
         <div class="destinasi-img">
-          <img src="{{ asset('assets/img/destinasi/'.$d['slug'].'.webp') }}" alt="{{ $d['nama'] }}" loading="lazy">
+          <img src="{{ asset($d->gambar) }}" alt="{{ $d->nama }}" loading="lazy">
         </div>
         <div class="destinasi-body">
           <div class="destinasi-row">
-            <h3>{{ $d['nama'] }}</h3>
-            <span>{{ $d['daerah'] }}</span>
+            <h3>{{ $d->nama }}</h3>
+            <span>{{ $d->daerah }}</span>
           </div>
-          <p>{{ $d['desk'] }}</p>
-          <a class="btn btn-coklat destinasi-btn" href="#" title="Menyusul">Klik untuk Memulai Tour</a>
+          <p>{{ $d->deskripsi }}</p>
+          @if($d->tour_url)
+            <a class="btn btn-coklat destinasi-btn" href="{{ $d->tour_url }}" target="_blank" rel="noopener">Klik untuk Memulai Tour</a>
+          @else
+            <a class="btn btn-coklat destinasi-btn" href="#" title="Menyusul">Klik untuk Memulai Tour</a>
+          @endif
         </div>
       </article>
       @endforeach

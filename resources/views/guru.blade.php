@@ -25,11 +25,13 @@
 <p class="lms-p">Kelola aktivitas pembelajaran setiap kelas. <a href="{{ route('guru.kelas') }}">Lihat semua &gt;</a></p>
 <div class="lms-cards lms-cards-3">
   @forelse ($kelas as $k)
+    @php $pct = $k->siswa->count() > 0 ? (int) min(100, $k->siswa->count() * 2.5) : 0; @endphp
     <article class="lms-kelas-card">
       <span class="lms-kelas-badge">{{ strtoupper($k->tingkat . ' - ' . $k->nama) }}</span>
       <b>{{ $k->siswa->count() }}</b>
       <p>Peserta Didik</p>
-      <div class="bar"><i style="width:{{ $k->siswa->count() > 0 ? min(100, $k->siswa->count() * 2.5) : 0 }}%"></i></div>
+      <div class="bar"><i style="width:{{ $pct }}%"></i></div>
+      <p class="lms-kode">{{ $pct }}%</p>
       <a class="dash-btn" href="{{ route('guru.kelas') }}">Kelola Kelas</a>
     </article>
   @empty
@@ -57,7 +59,7 @@
     @forelse ($mendatang as $t)
       <div class="dash-aktivitas">
         <span class="dash-tgl"><b>{{ $t->deadline?->format('d') }}</b>{{ $t->deadline?->translatedFormat('M') }}</span>
-        <div><b>{{ $t->judul }}</b><br><small>{{ $t->deadline?->translatedFormat('l, H.i') }} WIB</small></div>
+        <div><b>{{ $t->judul }}</b><br><small>{{ $t->deadline?->translatedFormat('l, H.i') }} WIB{{ $t->kelas ? ' &middot; Kelas ' . $t->kelas->tingkat . ' - ' . $t->kelas->nama : '' }}</small></div>
       </div>
     @empty
       <p class="dash-empty">Tidak ada aktivitas mendatang.</p>

@@ -48,7 +48,7 @@ class KayaNusantaraSeeder extends Seeder
         }
 
         // contoh diskusi dari slide
-        $mhs = User::firstOrCreate(['email' => 'felice@kaya.test'], ['name' => 'Felice Gracia', 'password' => Hash::make('password123'), 'role' => 'siswa', 'sekolah' => 'SMA Karangturi', 'kelas' => 'XI']);
+        $mhs = User::firstOrCreate(['email' => 'felice@kaya.test'], ['name' => 'Felice Gracia', 'password' => Hash::make('password123'), 'role' => 'siswa', 'sekolah' => 'SMA Karangturi', 'kelas' => 'X - A']);
         $diskusi = [
             ['judul' => 'Apa filosofi bentuk atap Rumah Gadang?', 'slug' => 'sistem-pengetahuan', 'user' => $mhs->id],
             ['judul' => 'Bagaimana cara generasi muda melestarikan tari tradisional?', 'slug' => 'kesenian', 'user' => $mhs->id],
@@ -58,6 +58,32 @@ class KayaNusantaraSeeder extends Seeder
             $unsurId = DB::table('unsur_budaya')->where('slug', $d['slug'])->value('id');
             if (! DB::table('diskusi')->where('judul', $d['judul'])->exists()) {
                 DB::table('diskusi')->insert(['user_id' => $d['user'], 'unsur_id' => $unsurId, 'judul' => $d['judul'], 'created_at' => now(), 'updated_at' => now()]);
+            }
+        }
+
+        // kuis contoh (soal sama seperti Uji Pengetahuanmu di Selasar Budaya)
+        $kuisId = DB::table('kuis')->where('judul', 'Kuis Tujuh Unsur Kebudayaan')->value('id');
+        if (! $kuisId) {
+            $kuisId = DB::table('kuis')->insertGetId([
+                'judul' => 'Kuis Tujuh Unsur Kebudayaan',
+                'deskripsi' => 'Pilihan ganda',
+                'jenis' => 'Pilihan Ganda',
+                'aktif' => 1,
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+            $soal = [
+                ['Apa fungsi utama bahasa dalam kehidupan masyarakat?', ['Sebagai alat komunikasi dan pewaris pengetahuan', 'Hanya sebagai hiburan', 'Sebagai alat pertanian', 'Sebagai bangunan tradisional'], 0, 'Bahasa memungkinkan manusia berkomunikasi, menyampaikan gagasan, dan mewariskan pengetahuan serta nilai budaya.'],
+                ['Gotong royong termasuk contoh unsur kebudayaan apa?', ['Kesenian', 'Organisasi sosial', 'Sistem religi', 'Peralatan hidup'], 1, 'Gotong royong merupakan bentuk kerja sama dan hubungan sosial dalam kehidupan masyarakat.'],
+                ['Rumah adat dan perahu tradisional termasuk unsur...', ['Bahasa', 'Sistem pengetahuan', 'Peralatan hidup dan teknologi', 'Sistem religi'], 2, 'Rumah dan perahu merupakan hasil ciptaan manusia untuk memenuhi kebutuhan hidup.'],
+                ['Pengetahuan mengenai musim tanam termasuk...', ['Sistem pengetahuan', 'Organisasi sosial', 'Kesenian', 'Bahasa'], 0, 'Pengetahuan tentang musim tanam merupakan pengetahuan lokal dalam memahami alam dan lingkungan.'],
+                ['Tari tradisional, wayang, dan musik daerah termasuk unsur...', ['Mata pencaharian', 'Sistem religi', 'Organisasi sosial', 'Kesenian'], 3, 'Tari, wayang, dan musik merupakan bentuk ekspresi seni masyarakat.'],
+            ];
+            foreach ($soal as $i => [$q, $pilihan, $jawaban, $penjelasan]) {
+                DB::table('kuis_soal')->insert([
+                    'kuis_id' => $kuisId, 'pertanyaan' => $q, 'pilihan' => json_encode($pilihan),
+                    'jawaban' => $jawaban, 'penjelasan' => $penjelasan, 'urutan' => $i + 1,
+                    'created_at' => now(), 'updated_at' => now(),
+                ]);
             }
         }
     }

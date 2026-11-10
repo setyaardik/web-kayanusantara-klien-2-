@@ -10,6 +10,7 @@ use App\Models\UnsurBudaya;
 use App\Models\ProgresMateri;
 use App\Models\User;
 use App\Models\Kuis;
+use App\Models\KuisSoal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -19,14 +20,18 @@ class GuruController extends Controller
     {
         $gid = $request->user()->id;
         $kelas = Kelas::where('guru_id', $gid)->with(['siswa' => fn ($q) => $q->where('role', 'siswa'), 'tugas'])->get();
+        $kelasIds = $kelas->pluck('id');
+
         $stats = [
-            'peserta' => User::where('role', 'siswa')->count(),
+            'peserta' => User::where('role', 'siswa')->whereIn('kelas', $kelas->pluck('nama'))->count(),
             'materi' => Materi::where('status', 'publikasi')->count(),
-            'tugasAktif' => Tugas::where('deadline', '>=', now())->count(),
-            'perluDiperiksa' => Submission::whereNull('nilai')->count(),
+            'tugasAktif' => Tugas::whereIn('kelas_id', $kelasIds)->where('deadline', '>=', now())->count(),
+            'perluDiperiksa' => Submission::whereNull('nilai')->whereHas('tugas.kelas', fn ($q) => $q->where('guru_id', $gid))->count(),
         ];
-        $pengumpulan = Submission::with(['tugas', 'user'])->latest()->take(10)->get();
-        $mendatang = Tugas::where('deadline', '>=', now())->orderBy('deadline')->take(2)->get();
+        $pengumpulan = Submission::with(['tugas', 'user'])
+            ->whereHas('tugas.kelas', fn ($q) => $q->where('guru_id', $gid))
+            ->latest()->take(10)->get();
+        $mendatang = Tugas::with('kelas')->whereIn('kelas_id', $kelasIds)->where('deadline', '>=', now())->orderBy('deadline')->take(2)->get();
         $aktivitasSiswa = (int) round(ProgresMateri::avg('persen') ?? 0);
 
         return view('guru', compact('kelas', 'stats', 'pengumpulan', 'mendatang', 'aktivitasSiswa'));
@@ -46,26 +51,26 @@ class GuruController extends Controller
             'tingkat' => ['required', 'in:X,XI,XII'],
         ]);
 
-        do {
-            $kode = strtoupper(Str::random(6));
-        } while (Kelas::where('kode', $kode)->exists());
-
         Kelas::create([
             'guru_id' => $request->user()->id,
             'nama' => $validated['nama'],
             'tingkat' => $validated['tingkat'],
-            'kode' => $kode,
         ]);
 
-        return back()->with('ok', 'Kelas dibuat. Kode kelas: ' . $kode);
+        return back()->with('ok', 'Kelas berhasil dibuat.');
     }
-
-    public function materi()
+    public function materi(Request $request)
     {
-        $materi = Materi::with('unsur')->latest()->get();
+        $kelasId = $request->query('kelas_id');
+        $unsurId = $request->query('unsur_id');
+        $q = Materi::with(['unsur','kelas'])->latest();
+        if ($kelasId) $q->where('kelas_id', $kelasId);
+        if ($unsurId) $q->where('unsur_id', $unsurId);
+        $materi = $q->get();
         $unsur = UnsurBudaya::orderBy('urutan')->get();
+        $kelas = Kelas::where('guru_id', $request->user()->id)->orderBy('tingkat')->orderBy('nama')->get();
 
-        return view('guru-materi', ['materi' => $materi, 'unsur' => $unsur]);
+        return view('guru-materi', compact('materi', 'unsur', 'kelas', 'kelasId', 'unsurId'));
     }
 
     public function buatMateri(Request $request)
@@ -73,18 +78,55 @@ class GuruController extends Controller
         $validated = $request->validate([
             'judul' => ['required', 'string', 'max:255'],
             'unsur_id' => ['required', 'exists:unsur_budaya,id'],
+            'kelas_id' => ['nullable', 'exists:kelas,id'],
+            'rangkuman' => ['nullable', 'string'],
+            'submateri_count' => ['nullable', 'integer', 'min:0', 'max:255'],
             'status' => ['required', 'in:draft,publikasi'],
         ]);
 
         Materi::create([
             'judul' => $validated['judul'],
-            'slug' => 'materi-' . Str::slug($validated['judul']),
+            'slug' => 'materi-' . Str::slug($validated['judul']) . '-' . Str::random(4),
             'unsur_id' => $validated['unsur_id'],
-            'isi' => '-',
+            'kelas_id' => $validated['kelas_id'] ?? null,
+            'rangkuman' => $validated['rangkuman'] ?? null,
+            'submateri_count' => $validated['submateri_count'] ?? 0,
+            'isi' => $validated['rangkuman'] ?? '-',
             'status' => $validated['status'],
         ]);
 
         return back()->with('ok', 'Materi dibuat.');
+    }
+
+    public function updateMateri(Request $request, Materi $materi)
+    {
+        $validated = $request->validate([
+            'judul' => ['required', 'string', 'max:255'],
+            'unsur_id' => ['required', 'exists:unsur_budaya,id'],
+            'kelas_id' => ['nullable', 'exists:kelas,id'],
+            'rangkuman' => ['nullable', 'string'],
+            'submateri_count' => ['nullable', 'integer', 'min:0', 'max:255'],
+            'status' => ['required', 'in:draft,publikasi'],
+        ]);
+
+        $materi->update([
+            'judul' => $validated['judul'],
+            'unsur_id' => $validated['unsur_id'],
+            'kelas_id' => $validated['kelas_id'] ?? null,
+            'rangkuman' => $validated['rangkuman'] ?? null,
+            'submateri_count' => $validated['submateri_count'] ?? 0,
+            'isi' => $validated['rangkuman'] ?? $materi->isi,
+            'status' => $validated['status'],
+        ]);
+
+        return back()->with('ok', 'Materi diperbarui.');
+    }
+
+    public function hapusMateri(Materi $materi)
+    {
+        $materi->delete();
+
+        return back()->with('ok', 'Materi dihapus.');
     }
 
     public function tugas()
@@ -99,17 +141,38 @@ class GuruController extends Controller
     {
         $validated = $request->validate([
             'judul' => ['required', 'string', 'max:255'],
+            'deskripsi' => ['nullable', 'string'],
             'kelas_id' => ['required', 'exists:kelas,id'],
             'deadline' => ['nullable', 'date'],
         ]);
 
         Tugas::create([
             'judul' => $validated['judul'],
+            'deskripsi' => $validated['deskripsi'] ?? null,
             'kelas_id' => $validated['kelas_id'],
             'deadline' => $validated['deadline'] ?? null,
         ]);
 
         return back()->with('ok', 'Tugas dibuat.');
+    }
+
+    public function updateTugas(Request $request, Tugas $tugas)
+    {
+        $validated = $request->validate([
+            'judul' => ['required', 'string', 'max:255'],
+            'deskripsi' => ['nullable', 'string'],
+            'kelas_id' => ['required', 'exists:kelas,id'],
+            'deadline' => ['nullable', 'date'],
+        ]);
+
+        $tugas->update([
+            'judul' => $validated['judul'],
+            'deskripsi' => $validated['deskripsi'] ?? null,
+            'kelas_id' => $validated['kelas_id'],
+            'deadline' => $validated['deadline'] ?? null,
+        ]);
+
+        return back()->with('ok', 'Tugas diperbarui.');
     }
 
     public function kuis()
@@ -135,9 +198,54 @@ class GuruController extends Controller
         return back()->with('ok', 'Kuis dibuat.');
     }
 
+    public function kelolaKuis(Kuis $kuis)
+    {
+        $kuis->load(['soal' => fn ($q) => $q->orderBy('urutan')]);
+
+        return view('guru-kuis-kelola', ['kuis' => $kuis]);
+    }
+
+    public function simpanSoal(Request $request, Kuis $kuis)
+    {
+        $request->validate([
+            'pertanyaan' => ['required', 'string'],
+            'pilihan' => ['required', 'array', 'size:4'],
+            'pilihan.*' => ['required', 'string'],
+            'jawaban' => ['required', 'integer', 'between:0,3'],
+            'penjelasan' => ['nullable', 'string'],
+        ]);
+
+        $kuis->soal()->create([
+            'pertanyaan' => $request->pertanyaan,
+            'pilihan' => json_encode($request->pilihan),
+            'jawaban' => $request->jawaban,
+            'penjelasan' => $request->penjelasan,
+            'urutan' => $kuis->soal()->max('urutan') + 1,
+        ]);
+
+        return back()->with('ok', 'Soal ditambahkan.');
+    }
+
+    public function hapusKuis(Kuis $kuis)
+    {
+        $kuis->delete();
+
+        return redirect()->route('guru.kuis')->with('ok', 'Kuis dihapus.');
+    }
+
+    public function hapusSoal(KuisSoal $soal)
+    {
+        $soal->delete();
+
+        return back()->with('ok', 'Soal dihapus.');
+    }
+
     public function penilaian()
     {
-        $pengumpulan = Submission::with(['tugas', 'user'])->latest()->get();
+        $gid = auth()->id();
+        $pengumpulan = Submission::with(['tugas', 'user'])
+            ->whereHas('tugas.kelas', fn ($q) => $q->where('guru_id', $gid))
+            ->latest()->get();
         $kelasList = Kelas::all();
         $unsurList = UnsurBudaya::orderBy('urutan')->get();
 
@@ -153,8 +261,15 @@ class GuruController extends Controller
 
     public function buatDiskusi(Request $request)
     {
-        $request->validate(['judul' => ['required', 'string', 'max:255']]);
-        \App\Models\Diskusi::create(['judul' => $request->judul, 'user_id' => $request->user()->id]);
+        $validated = $request->validate([
+            'judul' => ['required', 'string', 'max:255'],
+            'pertanyaan_pematik' => ['nullable', 'string', 'max:1000'],
+        ]);
+        \App\Models\Diskusi::create([
+            'judul' => $validated['judul'],
+            'pertanyaan_pematik' => $validated['pertanyaan_pematik'] ?? null,
+            'user_id' => $request->user()->id,
+        ]);
 
         return back()->with('ok', 'Diskusi dibuat.');
     }
@@ -162,8 +277,14 @@ class GuruController extends Controller
     public function editDiskusi(Request $request, \App\Models\Diskusi $diskusi)
     {
         abort_unless($diskusi->user_id === $request->user()->id, 403);
-        $request->validate(['judul' => ['required', 'string', 'max:255']]);
-        $diskusi->update(['judul' => $request->judul]);
+        $validated = $request->validate([
+            'judul' => ['required', 'string', 'max:255'],
+            'pertanyaan_pematik' => ['nullable', 'string', 'max:1000'],
+        ]);
+        $diskusi->update([
+            'judul' => $validated['judul'],
+            'pertanyaan_pematik' => $validated['pertanyaan_pematik'] ?? null,
+        ]);
 
         return back()->with('ok', 'Diskusi diperbarui.');
     }
@@ -172,21 +293,30 @@ class GuruController extends Controller
     {
         $gid = auth()->id();
         $kelas = Kelas::where('guru_id', $gid)->withCount('siswa')->get();
+        $kelasIdSiswa = \App\Models\User::where('role', 'siswa')->whereIn(
+            'kelas',
+            $kelas->pluck('nama')->all()
+        )->get();
         $rataNilai = round(\App\Models\Submission::whereNotNull('nilai')->avg('nilai') ?? 0);
         $progresRata = (int) round(\App\Models\ProgresMateri::avg('persen') ?? 0);
         $totalTugas = \App\Models\Tugas::count();
         $selesaiTugas = \App\Models\Submission::count();
         $ketuntasan = $totalTugas > 0 ? (int) round(min(100, $selesaiTugas / $totalTugas * 100)) : 0;
 
-        return view('guru-laporan', compact('kelas', 'rataNilai', 'progresRata', 'ketuntasan'));
+        return view('guru-laporan', compact('kelas', 'kelasIdSiswa', 'rataNilai', 'progresRata', 'ketuntasan'));
     }
 
-    public function nilai(Submission $submission)
+    public function nilai(Request $request, Submission $submission)
     {
-        $request = request();
-        $request->validate(['nilai' => ['required', 'integer', 'min:0', 'max:100']]);
-        $submission->update(['nilai' => $request->nilai, 'dinilai_pada' => now()]);
+        $tugas = $submission->tugas;
+        abort_unless($tugas && $tugas->kelas && $tugas->kelas->guru_id === $request->user()->id, 403);
 
-        return back()->with('ok', 'Nilai tersimpan.');
+        $request->validate([
+            'nilai' => ['required', 'integer', 'min:0', 'max:100'],
+            'feedback' => ['nullable', 'string', 'max:500'],
+        ]);
+        $submission->update(['nilai' => $request->nilai, 'feedback_guru' => $request->feedback, 'dinilai_pada' => now()]);
+
+        return back()->with('ok', 'Nilai & umpan balik tersimpan.');
     }
 }

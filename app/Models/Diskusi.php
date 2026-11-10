@@ -8,7 +8,7 @@ class Diskusi extends Model
 {
     protected $table = 'diskusi';
 
-    protected $fillable = ['user_id', 'unsur_id', 'judul'];
+    protected $fillable = ['user_id', 'unsur_id', 'judul', 'pertanyaan_pematik'];
 
     public function user()
     {

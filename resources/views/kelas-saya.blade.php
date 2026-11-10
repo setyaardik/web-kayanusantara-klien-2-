@@ -37,8 +37,9 @@
       <span class="unsur-tag" id="materi-judul"></span>
       <p id="materi-desk"></p>
       <div class="unsur-aktivitas lms-materi-isinya">
-        <h4>Materi ini memuat</h4>
-        <p>Pengantar, contoh budaya dari berbagai daerah, aktivitas refleksi, dan evaluasi pemahaman.</p>
+        <h4>Materi Pembelajaran</h4>
+        <div id="materi-list-items"></div>
+        <p id="materi-list-empty" style="display:none">Belum ada materi untuk unsur ini.</p>
       </div>
       <form method="POST" action="" id="materi-form">
         @csrf
@@ -49,6 +50,19 @@
 </div>
 
 <script type="application/json" id="materi-data">
-{!! json_encode($list->mapWithKeys(fn ($u) => [$u->slug => ['nama' => $u->nama, 'desk' => $u->deskripsi ?? $u->ringkasan, 'persen' => $u->persen]])->all(), JSON_UNESCAPED_UNICODE) !!}
+{!! json_encode($list->mapWithKeys(fn ($u) => [
+  $u->slug => [
+    'id' => $u->id,
+    'nama' => $u->nama,
+    'desk' => $u->deskripsi ?? $u->ringkasan,
+    'persen' => $u->persen,
+    'materi' => ($materi[$u->id] ?? collect())->map(fn ($m) => [
+      'judul' => $m->judul,
+      'rangkuman' => $m->rangkuman ?? $m->isi ?? '',
+      'kelas' => $m->kelas ? ($m->kelas->tingkat . ' - ' . $m->kelas->nama) : 'Semua Kelas',
+      'submateri' => (int)($m->submateri_count ?? 0),
+    ])->values()->all(),
+  ]
+])->all(), JSON_UNESCAPED_UNICODE) !!}
 </script>
 @endsection

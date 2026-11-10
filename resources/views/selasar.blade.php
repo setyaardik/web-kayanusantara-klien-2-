@@ -168,7 +168,7 @@
   </div>
 </section>
 
-{{--KENALI • PELAJARI • LESTARIKAN — CTA penutup (Canva p32); footer di layout--}}
+{{--KENALI • PELAJARI • LESTARIKAN — CTA penutup (Canva p32)--}}
 <section class="lestarikan-section" id="lestarikan">
   <div class="container">
     <div class="lestarikan-box reveal">
@@ -176,6 +176,74 @@
       <h2 class="lestarikan-title">Budaya Indonesia adalah kekayaan kita bersama</h2>
       <p class="lestarikan-sub">Mulailah dari mengenal budaya di sekitarmu, lalu bagikan pengetahuan itu kepada generasi berikutnya.</p>
       <a class="btn btn-coklat lestarikan-btn" href="#unsur">Kembali Jelajahi 7 Unsur Kebudayaan &gt;</a>
+    </div>
+  </div>
+</section>
+
+{{--BERITA TERBARU — modern editorial --}}
+<section class="berita-section" id="berita">
+  <div class="container">
+    <div class="berita-head reveal">
+      <div>
+        <span class="berita-eyebrow">Wawasan Budaya</span>
+        <h2 class="berita-title">Berita Terbaru</h2>
+        <p class="berita-lead">Kabar, agenda, dan inisiatif pelestarian budaya dari berbagai daerah di Indonesia.</p>
+      </div>
+    </div>
+
+    <div class="berita-grid reveal stagger">
+      @forelse ($berita as $b)
+        <article class="berita-card">
+          <a class="berita-media" href="{{ $b->url }}" target="_blank" rel="noopener" aria-label="{{ $b->judul }}">
+            <img src="{{ asset($b->gambar) }}" alt="{{ $b->judul }}" loading="lazy">
+            <span class="berita-badge">Berita Budaya</span>
+          </a>
+          <div class="berita-body">
+            <h3><a href="{{ $b->url }}" target="_blank" rel="noopener">{{ $b->judul }}</a></h3>
+            <p>{{ $b->excerpt }}</p>
+            <a class="berita-link" href="{{ $b->url }}" target="_blank" rel="noopener">Baca Selengkapnya <span aria-hidden="true">&rarr;</span></a>
+          </div>
+        </article>
+      @empty
+        <p class="berita-lead">Belum ada berita.</p>
+      @endforelse
+    </div>
+  </div>
+</section>
+
+{{--TOKO KAYA NUSANTARA — modern showcase, tampilan saja--}}
+<section class="toko-section" id="toko">
+  <div class="container">
+    <div class="toko-head reveal">
+      <span class="toko-eyebrow">Koleksi Pilihan</span>
+      <h2 class="toko-title">Toko Kaya Nusantara</h2>
+      <p class="toko-lead">Referensi bacaan pilihan untuk memperdalam pemahaman budaya dan sosiologi. <em>Tampilan contoh.</em></p>
+    </div>
+
+    <div class="toko-grid reveal stagger">
+      @forelse ($produkToko as $p)
+        <article class="toko-card">
+          <div class="toko-img">
+            <span class="toko-tag">Buku</span>
+            <img src="{{ asset($p->gambar) }}" alt="{{ $p->judul }}" loading="lazy">
+          </div>
+          <div class="toko-body">
+            <h3>{{ $p->judul }}</h3>
+            <ul class="toko-detail">
+              @foreach (($p->detail ?? []) as $d)
+                <li>{{ $d }}</li>
+              @endforeach
+            </ul>
+            <p class="toko-penulis">{{ $p->penulis }}</p>
+            <div class="toko-foot">
+              <p class="toko-harga">{{ $p->harga }}</p>
+              <button type="button" class="toko-btn" disabled aria-disabled="true" title="Tampilan contoh">Masukkan Keranjang</button>
+            </div>
+          </div>
+        </article>
+      @empty
+        <p class="toko-lead">Belum ada produk.</p>
+      @endforelse
     </div>
   </div>
 </section>

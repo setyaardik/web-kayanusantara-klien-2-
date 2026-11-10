@@ -19,9 +19,14 @@
 <div class="lms-list">
   @forelse ($kuis as $k)
     <div class="lms-list-row">
-      <div><b>{{ $k->judul }}</b><br><small>{{ $k->jenis ?? 'Pilihan Ganda' }} &middot; {{ $k->soal->count() }} soal{{ $k->kelas ? ' &middot; ' . $k->kelas->tingkat . ' ' . $k->kelas->nama : '' }}</small></div>
+      <div><b>{{ $k->judul }}</b><br><small>{{ $k->jenis ?? 'Pilihan Ganda' }} &middot; {{ $k->soal->count() }} soal @if($k->kelas)&middot; {{ $k->kelas->tingkat }} {{ $k->kelas->nama }}@endif</small></div>
       <span class="lms-badge {{ $k->aktif ? 'ok' : 'no' }}">{{ $k->aktif ? 'Aktif' : 'Draf' }}</span>
-      <a class="dash-btn" href="{{ route('guru.kuis') }}">Kelola</a>
+      <a class="dash-btn" href="{{ route('guru.kuis.kelola', $k) }}">Kelola</a>
+      <form method="POST" action="{{ route('guru.kuis.hapus', $k) }}" onsubmit="return confirm('Hapus kuis ini beserta soal & hasilnya?')">
+        @csrf
+        @method('DELETE')
+        <button class="dash-btn" type="submit">Hapus</button>
+      </form>
     </div>
   @empty
     <p class="dash-empty">Belum ada kuis.</p>

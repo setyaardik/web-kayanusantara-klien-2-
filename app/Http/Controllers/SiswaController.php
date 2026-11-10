@@ -60,7 +60,17 @@ class SiswaController extends Controller
         $q = mb_strtolower(trim((string) $request->query('q', '')));
         $list = $st['list']->filter(fn ($u) => $q === '' || str_contains(mb_strtolower($u->nama), $q));
 
-        return view('kelas-saya', ['list' => $list, 'q' => $q])->with('tanpaSidebar', false);
+        $user = $request->user();
+        $kelasMurid = \App\Models\Kelas::where('nama', $user->kelas)->first();
+        $materi = \App\Models\Materi::with(['unsur','kelas'])
+            ->where('status', 'publikasi')
+            ->where(function ($qr) use ($kelasMurid) {
+                $qr->whereNull('kelas_id');
+                if ($kelasMurid) $qr->orWhere('kelas_id', $kelasMurid->id);
+            })
+            ->latest()->get()->groupBy('unsur_id');
+
+        return view('kelas-saya', ['list' => $list, 'q' => $q, 'materi' => $materi])->with('tanpaSidebar', false);
     }
 
     public function selesaikanMateri(Request $request, $slug)
@@ -79,8 +89,58 @@ class SiswaController extends Controller
         $tugas = Tugas::with(['submissions' => fn ($q) => $q->where('user_id', $request->user()->id)])
             ->orderBy('deadline')
             ->get();
+        $kuis = \App\Models\Kuis::where('aktif', 1)->withCount('soal')->latest()->get();
+        $hasil = \App\Models\KuisHasil::where('user_id', $request->user()->id)->latest()->get()->keyBy('kuis_id');
 
-        return view('tugas-kuis', ['tugas' => $tugas])->with('tanpaSidebar', false);
+        return view('tugas-kuis', ['tugas' => $tugas, 'kuis' => $kuis, 'hasil' => $hasil])->with('tanpaSidebar', false);
+    }
+
+    public function kuisAmbil(Request $request, \App\Models\Kuis $kuis)
+    {
+        $kuis->load(['soal' => fn ($q) => $q->orderBy('urutan')]);
+
+        return view('kuis-ambil', ['kuis' => $kuis])->with('tanpaSidebar', false);
+    }
+
+    public function kuisKirim(Request $request, \App\Models\Kuis $kuis)
+    {
+        $kuis->load(['soal' => fn ($q) => $q->orderBy('urutan')]);
+        $benar = 0;
+        foreach ($kuis->soal as $soal) {
+            $jawab = (int) $request->input('soal_' . $soal->id, -1);
+            if ($jawab === (int) $soal->jawaban) $benar++;
+        }
+        $total = max(1, $kuis->soal->count());
+        $skor = (int) round($benar / $total * 100);
+
+        \App\Models\KuisHasil::updateOrCreate(
+            ['user_id' => $request->user()->id, 'kuis_id' => $kuis->id],
+            ['benar' => $benar, 'total' => $total, 'skor' => $skor]
+        );
+
+        return redirect()->route('kuis.hasil', $kuis->id)->with('ok', 'Kuis selesai. Skor: ' . $skor);
+    }
+
+    public function kuisHasil(Request $request, \App\Models\Kuis $kuis)
+    {
+        $kuis->load(['soal' => fn ($q) => $q->orderBy('urutan')]);
+        $hasil = \App\Models\KuisHasil::where('user_id', $request->user()->id)->where('kuis_id', $kuis->id)->firstOrFail();
+
+        return view('kuis-hasil', ['kuis' => $kuis, 'hasil' => $hasil])->with('tanpaSidebar', false);
+    }
+
+    public function unduh(Request $request, Submission $submission)
+    {
+        $tugas = $submission->tugas;
+        $pemilik = $submission->user_id === $request->user()->id;
+        $guru = $tugas && $tugas->kelas && $tugas->kelas->guru_id === $request->user()->id;
+        abort_unless($pemilik || $guru, 403);
+        abort_unless($submission->file_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($submission->file_path), 404);
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->download(
+            $submission->file_path,
+            'tugas-' . ($tugas?->judul ?? 'submission')
+        );
     }
 
     public function uploadSubmission(Request $request, Tugas $tugas)
@@ -89,10 +149,10 @@ class SiswaController extends Controller
             'file' => ['required', 'file', 'mimes:doc,docx,pdf', 'max:10240'],
         ]);
 
-        $path = $request->file('file')->store('submissions', 'public');
+        $path = $request->file('file')->store('submissions', 'local');
         $sub = Submission::where('tugas_id', $tugas->id)->where('user_id', $request->user()->id)->first();
         if ($sub) {
-            Storage::disk('public')->delete($sub->file_path);
+            Storage::disk('local')->delete($sub->file_path);
             $sub->update(['file_path' => $path, 'dinilai_pada' => null, 'nilai' => null]);
         } else {
             Submission::create(['tugas_id' => $tugas->id, 'user_id' => $request->user()->id, 'file_path' => $path]);
@@ -120,8 +180,15 @@ class SiswaController extends Controller
 
     public function buatDiskusi(Request $request)
     {
-        $request->validate(['judul' => ['required', 'string', 'max:255']]);
-        Diskusi::create(['judul' => $request->judul, 'user_id' => $request->user()->id]);
+        $validated = $request->validate([
+            'judul' => ['required', 'string', 'max:255'],
+            'pertanyaan_pematik' => ['nullable', 'string', 'max:1000'],
+        ]);
+        Diskusi::create([
+            'judul' => $validated['judul'],
+            'pertanyaan_pematik' => $validated['pertanyaan_pematik'] ?? null,
+            'user_id' => $request->user()->id,
+        ]);
 
         return back()->with('ok', 'Diskusi dibuat.');
     }

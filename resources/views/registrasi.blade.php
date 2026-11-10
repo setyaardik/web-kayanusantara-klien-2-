@@ -35,6 +35,7 @@
         <select name="role" required>
           <option value="siswa" {{ old('role') === 'siswa' ? 'selected' : '' }}>Murid</option>
           <option value="guru" {{ old('role') === 'guru' ? 'selected' : '' }}>Guru</option>
+          <option value="umkm" {{ old('role') === 'umkm' ? 'selected' : '' }}>UMKM</option>
         </select>
       </label>
       <label>

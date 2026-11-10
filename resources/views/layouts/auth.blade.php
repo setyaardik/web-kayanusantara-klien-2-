@@ -1,10 +1,10 @@
-{{-- Layout khusus auth (login/registrasi) — tanpa header & footer, background auto-slide seperti hero Home --}}
+﻿{{-- Layout khusus auth (login/registrasi) â€” tanpa header & footer, background auto-slide seperti hero Home --}}
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>@yield('title', 'Masuk — Kaya Nusantara')</title>
+  <title>@yield('title', 'Masuk â€” Kaya Nusantara')</title>
   <link rel="icon" href="{{ asset('assets/img/logo.ico') }}?v=2" type="image/x-icon">
   <link rel="icon" href="{{ asset('assets/img/logo-putih.png') }}?v=2" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,6 +14,8 @@
 </head>
 <body>
   @yield('content')
-  <script src="{{ asset('assets/js/main.js') }}?v=19" defer></script>
+  <script src="{{ asset('assets/js/main.js') }}?v=20" defer></script>
 </body>
 </html>
+
+

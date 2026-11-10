@@ -20,7 +20,6 @@
       <b>{{ $k->siswa_count }}</b>
       <p>Peserta Didik</p>
       <div class="bar"><i style="width:{{ min(100, $k->siswa_count * 2.5) }}%"></i></div>
-      <p class="lms-kode">Kode kelas: <b>{{ $k->kode }}</b></p>
       <a class="btn btn-coklat lms-kelola-btn" href="{{ route('guru.kelas') }}">Kelola Kelas</a>
     </article>
   @empty
@@ -30,7 +29,7 @@
 
 <div class="lms-panel">
   <h3>Pengaturan Kelas</h3>
-  <p>Pengelolaan daftar siswa, kode kelas, materi, tugas, kuis, dan laporan perkembangan.</p>
+  <p>Pengelolaan daftar siswa, materi, tugas, kuis, dan laporan perkembangan. Murid bergabung ke kelas melalui pengaturan profil (pilih kelas).</p>
 </div>
 
 {{-- Pop-up tambah kelas --}}

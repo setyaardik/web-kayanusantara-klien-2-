@@ -420,27 +420,27 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ---------- Chatbot AI Kaya Nusantara ---------- */
   const chatbotFab = document.getElementById('chatbotFab');
   const chatbotPanel = document.getElementById('chatbotPanel');
-  const chatbotGreet = document.getElementById('chatbotGreet');
   const chatbotBody = document.getElementById('chatbotBody');
   const chatbotForm = document.getElementById('chatbotForm');
   const chatbotInput = document.getElementById('chatbotInput');
   if (chatbotFab && chatbotPanel) {
     const togglePanel = (show) => {
       chatbotPanel.hidden = !show;
-      chatbotGreet?.classList.add('hidden');
-      if (show) chatbotInput.focus();
+      chatbotFab.classList.toggle('active', show);
+      if (show && chatbotInput) chatbotInput.focus();
     };
     chatbotFab.addEventListener('click', () => togglePanel(chatbotPanel.hidden));
-    document.getElementById('chatbotClose').addEventListener('click', () => togglePanel(false));
-    const bubble = (teks, kelas) => {
-      const b = document.createElement('div');
-      b.className = 'chatbot-bubble ' + kelas;
-      b.textContent = teks;
-      chatbotBody.appendChild(b);
-      chatbotBody.scrollTop = chatbotBody.scrollHeight;
-      return b;
-    };
-    chatbotForm.addEventListener('submit', async (e) => {
+    document.getElementById('chatbotClose')?.addEventListener('click', () => togglePanel(false));
+    if (chatbotForm && chatbotInput) {
+      const bubble = (teks, kelas) => {
+        const b = document.createElement('div');
+        b.className = 'chatbot-bubble ' + kelas;
+        b.textContent = teks;
+        chatbotBody.appendChild(b);
+        chatbotBody.scrollTop = chatbotBody.scrollHeight;
+        return b;
+      };
+      chatbotForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const pesan = chatbotInput.value.trim();
       if (!pesan) return;
@@ -464,6 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.disabled = false;
       chatbotInput.focus();
     });
+    }
   }
 
   /* ---------- Guru: pop-up beri nilai ---------- */
@@ -500,6 +501,13 @@ document.addEventListener('DOMContentLoaded', () => {
     filterKelas.addEventListener('change', apply);
     filterUnsur.addEventListener('change', apply);
   }
+
+  /* ---------- LMS: upload tugas dikirim otomatis saat file dipilih ---------- */
+  document.querySelectorAll('.lms-upload input[type="file"]').forEach((input) => {
+    input.addEventListener('change', () => {
+      if (input.files.length) input.closest('form').submit();
+    });
+  });
 
   /* ---------- LMS: notifikasi popup ---------- */
   const notifBtn = document.getElementById('notifBtn');
@@ -549,6 +557,18 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('materi-img').alt = d.nama;
         document.getElementById('materi-judul').textContent = d.nama;
         document.getElementById('materi-desk').textContent = d.desk;
+        const listEl = document.getElementById('materi-list-items');
+        const emptyEl = document.getElementById('materi-list-empty');
+        if (listEl) {
+          const items = (d.materi || []);
+          if (!items.length) {
+            listEl.innerHTML = '';
+            if (emptyEl) emptyEl.style.display = '';
+          } else {
+            if (emptyEl) emptyEl.style.display = 'none';
+            listEl.innerHTML = items.map(m => `<div class="lms-materi-item"><b>${m.judul}</b><br><small>${m.kelas} · ${m.submateri} submateri</small>${m.rangkuman ? `<p>${m.rangkuman}</p>` : ''}</div>`).join('');
+          }
+        }
         document.getElementById('materi-form').action = '/ruang-belajar/materi/' + slug + '/selesai';
         materiModal.hidden = false;
         document.body.classList.add('modal-lock');
@@ -560,6 +580,119 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMateri(); });
   }
 
+  /* ---------- Forum: buat/edit diskusi ---------- */
+  const diskusiForm = document.getElementById('diskusi-form');
+  if (diskusiForm) {
+    const diskusiModalEl = document.getElementById('diskusi-modal');
+    const diskusiTitle = document.getElementById('diskusi-modal-title');
+    const diskusiJudul = document.getElementById('diskusi-judul');
+    const diskusiPematik = document.getElementById('diskusi-pematik');
+    const diskusiSubmit = document.getElementById('diskusi-submit');
+    const addDiskusiBtn = document.getElementById('addDiskusiBtn');
+    const openDiskusiModal = () => { if (diskusiModalEl) { diskusiModalEl.hidden = false; document.body.classList.add('modal-lock'); } };
+    const closeDiskusi = () => { if (diskusiModalEl) { diskusiModalEl.hidden = true; document.body.classList.remove('modal-lock'); } };
+    const setCreateMode = () => {
+      diskusiForm.action = diskusiForm.dataset.store || diskusiForm.action;
+      if (diskusiTitle) diskusiTitle.textContent = 'Buat Diskusi';
+      if (diskusiSubmit) diskusiSubmit.textContent = 'Upload';
+      diskusiForm.reset();
+    };
+    if (addDiskusiBtn) addDiskusiBtn.addEventListener('click', () => { setCreateMode(); openDiskusiModal(); });
+    if (diskusiModalEl) {
+      diskusiModalEl.querySelectorAll('[data-close], .lms-dialog-close').forEach((b) => b.addEventListener('click', closeDiskusi));
+      diskusiModalEl.addEventListener('click', (e) => { if (e.target === diskusiModalEl) closeDiskusi(); });
+    }
+    document.querySelectorAll('[data-edit-diskusi]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        diskusiForm.action = '/ruang-belajar/forum/' + btn.dataset.editDiskusi + '/edit';
+        if (diskusiTitle) diskusiTitle.textContent = 'Edit Diskusi';
+        if (diskusiSubmit) diskusiSubmit.textContent = 'Upload';
+        if (diskusiJudul) diskusiJudul.value = btn.dataset.judul || '';
+        if (diskusiPematik) diskusiPematik.value = btn.dataset.pematik || '';
+        openDiskusiModal();
+      });
+    });
+  }
+  /* ---------- Guru: form materi (buat/edit) ---------- */
+  const materiForm = document.getElementById('materi-form');
+  if (materiForm) {
+    const materiModalEl = document.getElementById('materi-modal');
+    const materiTitle = document.getElementById('materi-modal-title');
+    const materiMethod = document.getElementById('materi-method');
+    const materiJudul = document.getElementById('materi-judul');
+    const materiUnsur = document.getElementById('materi-unsur');
+    const materiKelas = document.getElementById('materi-kelas');
+    const materiRangkuman = document.getElementById('materi-rangkuman');
+    const materiSub = document.getElementById('materi-submateri');
+    const materiStatus = document.getElementById('materi-status');
+    const materiSubmit = document.getElementById('materi-submit');
+    const addMateriBtn = document.getElementById('addMateriBtn');
+
+    const openMateriModal = () => { if (materiModalEl) { materiModalEl.hidden = false; document.body.classList.add('modal-lock'); } };
+    const setCreateMode = () => {
+      materiForm.action = materiForm.dataset.store || materiForm.action;
+      materiMethod.value = 'POST';
+      materiMethod.disabled = true;
+      if (materiTitle) materiTitle.textContent = 'Buat Materi';
+      if (materiSubmit) materiSubmit.textContent = 'Upload';
+      materiForm.reset();
+      if (materiSub) materiSub.value = 0;
+    };
+    if (addMateriBtn) {
+      addMateriBtn.addEventListener('click', setCreateMode, { capture: true });
+    }
+    document.querySelectorAll('[data-edit-materi]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        materiForm.action = '/ruang-belajar/guru/materi/' + btn.dataset.editMateri;
+        materiMethod.value = 'PUT';
+        materiMethod.disabled = false;
+        if (materiTitle) materiTitle.textContent = 'Edit Materi';
+        if (materiSubmit) materiSubmit.textContent = 'Upload';
+        if (materiJudul) materiJudul.value = btn.dataset.judul || '';
+        if (materiUnsur) materiUnsur.value = btn.dataset.unsur || '';
+        if (materiKelas) materiKelas.value = btn.dataset.kelas || '';
+        if (materiRangkuman) materiRangkuman.value = btn.dataset.rangkuman || '';
+        if (materiSub) materiSub.value = btn.dataset.submateri || 0;
+        if (materiStatus) materiStatus.value = btn.dataset.status || 'draft';
+        openMateriModal();
+      });
+    });
+  }
+  /* ---------- Guru: form tugas (buat/edit) ---------- */
+  const tugasForm = document.getElementById('tugas-form');
+  if (tugasForm) {
+    const tugasModalEl = document.getElementById('tugas-modal');
+    const tugasTitle = document.getElementById('tugas-modal-title');
+    const tugasMethod = document.getElementById('tugas-method');
+    const tugasJudul = document.getElementById('tugas-judul');
+    const tugasDesk = document.getElementById('tugas-deskripsi');
+    const tugasKelas = document.getElementById('tugas-kelas');
+    const tugasDeadline = document.getElementById('tugas-deadline');
+    const tugasSubmit = document.getElementById('tugas-submit');
+    const addTugasBtn = document.getElementById('addTugasBtn');
+    const openTugasModal = () => { if (tugasModalEl) { tugasModalEl.hidden = false; document.body.classList.add('modal-lock'); } };
+    const setCreateMode = () => {
+      tugasForm.action = tugasForm.dataset.store || tugasForm.action;
+      tugasMethod.value = 'POST'; tugasMethod.disabled = true;
+      if (tugasTitle) tugasTitle.textContent = 'Buat Tugas';
+      if (tugasSubmit) tugasSubmit.textContent = 'Upload';
+      tugasForm.reset();
+    };
+    if (addTugasBtn) addTugasBtn.addEventListener('click', setCreateMode, { capture: true });
+    document.querySelectorAll('[data-edit-tugas]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        tugasForm.action = '/ruang-belajar/guru/tugas/' + btn.dataset.editTugas;
+        tugasMethod.value = 'PUT'; tugasMethod.disabled = false;
+        if (tugasTitle) tugasTitle.textContent = 'Edit Tugas';
+        if (tugasSubmit) tugasSubmit.textContent = 'Upload';
+        if (tugasJudul) tugasJudul.value = btn.dataset.judul || '';
+        if (tugasDesk) tugasDesk.value = btn.dataset.deskripsi || '';
+        if (tugasKelas) tugasKelas.value = btn.dataset.kelas || '';
+        if (tugasDeadline) tugasDeadline.value = btn.dataset.deadline || '';
+        openTugasModal();
+      });
+    });
+  }
   /* ---------- LMS: pop-up tambah (kelas/materi/tugas/kuis) ---------- */
   const pasangan = [['addKelasBtn', 'kelas-modal'], ['addMateriBtn', 'materi-modal'], ['addTugasBtn', 'tugas-modal'], ['addKuisBtn', 'kuis-modal']];
   pasangan.forEach(([btnId, modalId]) => {
@@ -622,4 +755,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
   }
 });
+
+
+
+
+
 

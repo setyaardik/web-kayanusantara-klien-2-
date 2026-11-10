@@ -25,6 +25,21 @@
       @if (request('redirect'))
         <input type="hidden" name="redirect" value="{{ request('redirect') }}">
       @endif
+
+      <div class="auth-role-picker">
+        <span class="auth-role-label">Masuk sebagai</span>
+        <div class="auth-role-options">
+          <label class="auth-role-option">
+            <input type="radio" name="login_as" value="siswa" {{ old('login_as', 'siswa') === 'siswa' ? 'checked' : '' }} required>
+            <span>Murid</span>
+          </label>
+          <label class="auth-role-option">
+            <input type="radio" name="login_as" value="guru" {{ old('login_as') === 'guru' ? 'checked' : '' }} required>
+            <span>Guru</span>
+          </label>
+        </div>
+      </div>
+
       <label>
         Email
         <input type="email" name="email" value="{{ old('email') }}" required autofocus placeholder="nama@email.com">

@@ -8,7 +8,7 @@ class Kelas extends Model
 {
     protected $table = 'kelas';
 
-    protected $fillable = ['guru_id', 'nama', 'tingkat', 'kode', 'deskripsi'];
+    protected $fillable = ['guru_id', 'nama', 'tingkat', 'deskripsi'];
 
     public function guru()
     {
@@ -17,7 +17,7 @@ class Kelas extends Model
 
     public function siswa()
     {
-        return $this->belongsToMany(User::class, 'kelas_user', 'kelas_id', 'user_id');
+        return $this->hasMany(User::class, 'kelas', 'nama')->where('role', 'siswa');
     }
 
     public function tugas()

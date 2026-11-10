@@ -7,16 +7,10 @@
 @section('lms-content')
 <div class="lms-head-row">
   <div>
-    <p class="lms-p">Berbagi pendapat dan belajar bersama teman.</p>
+    <p class="lms-p">Fasilitasi diskusi kritis tentang fenomena budaya.</p>
   </div>
   <button class="btn btn-krem" type="button" id="addDiskusiBtn">Buat Diskusi</button>
 </div>
-
-<form method="POST" action="{{ route('forum.buat') }}" class="lms-diskusi-form">
-  @csrf
-  <input type="text" name="judul" placeholder="Buat pertanyaan diskusi baru..." required maxlength="255">
-  <button class="btn btn-coklat" type="submit">Kirim</button>
-</form>
 
 <div class="lms-panel">
   <span class="unsur-tag">Diskusi Terbaru</span>
@@ -26,14 +20,16 @@
         <div>
           <p class="lms-diskusi-unsur" style="text-align:left">{{ strtoupper($d->unsur?->nama ?? 'Umum') }}</p>
           <p class="lms-diskusi-judul">{{ $d->judul }}</p>
+          @if($d->pertanyaan_pematik)
+            <p class="lms-diskusi-meta">{{ $d->pertanyaan_pematik }}</p>
+          @endif
           <p class="lms-diskusi-meta">Diskusi oleh {{ $d->user?->name ?? 'Anonim' }} &middot; {{ $d->tanggapan->count() }} tanggapan</p>
         </div>
         @if ($d->user_id === auth()->id())
-          <form method="POST" action="{{ route('forum.edit', $d) }}" class="lms-inline-edit">
-            @csrf
-            <input type="text" name="judul" value="{{ $d->judul }}" required maxlength="255">
-            <button type="submit">Edit</button>
-          </form>
+          <button class="dash-btn" type="button"
+            data-edit-diskusi="{{ $d->id }}"
+            data-judul="{{ e($d->judul) }}"
+            data-pematik="{{ e($d->pertanyaan_pematik ?? '') }}">Edit</button>
         @endif
       </div>
       @if ($d->tanggapan->isNotEmpty())
@@ -52,5 +48,22 @@
   @empty
     <p class="dash-empty">Belum ada diskusi. Jadilah yang pertama!</p>
   @endforelse
+</div>
+
+<div class="unsur-modal" id="diskusi-modal" hidden>
+  <div class="lms-dialog">
+    <button class="lms-dialog-close" type="button" data-close aria-label="Tutup">&times;</button>
+    <h3 class="lms-modal-title" id="diskusi-modal-title">Buat Diskusi</h3>
+    <form method="POST" action="{{ route('forum.buat') }}" id="diskusi-form" data-store="{{ route('forum.buat') }}">
+      @csrf
+      <label>Judul Diskusi
+        <input type="text" name="judul" id="diskusi-judul" placeholder="Tulis judul diskusi" required maxlength="255">
+      </label>
+      <label>Pertanyaan Pematik
+        <input type="text" name="pertanyaan_pematik" id="diskusi-pematik" placeholder="Tulis pertanyaan pematik" maxlength="1000">
+      </label>
+      <button class="btn btn-coklat lms-edit-btn" type="submit" id="diskusi-submit">Upload</button>
+    </form>
+  </div>
 </div>
 @endsection

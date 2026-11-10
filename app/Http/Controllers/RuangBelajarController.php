@@ -14,6 +14,8 @@ class RuangBelajarController extends Controller
 
         return $request->user()->role === 'guru'
             ? app(GuruController::class)->dashboard($request)
-            : app(SiswaController::class)->dashboard($request);
+            : ($request->user()->role === 'umkm'
+                ? view('umkm')
+                : app(SiswaController::class)->dashboard($request));
     }
 }
